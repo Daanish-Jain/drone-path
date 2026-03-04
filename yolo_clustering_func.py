@@ -4,7 +4,7 @@
   "metadata": {
     "colab": {
       "provenance": [],
-      "authorship_tag": "ABX9TyOmgPtEdqUtpWnPwClzvOK5",
+      "authorship_tag": "ABX9TyP40wRipDuUnFXPqBDjY+3L",
       "include_colab_link": true
     },
     "kernelspec": {
@@ -41,7 +41,7 @@
         "yolo_model = model.model\n",
         "\n",
         "# Extract backbone\n",
-        "backbone = yolo_model.model[:8]   #size of backbone\n",
+        "backbone = yolo_model.model[:10]   #size of backbone\n",
         "backbone.eval()\n",
         "\n",
         "\n",
@@ -146,7 +146,7 @@
       "metadata": {
         "id": "PkY9ZxkboDSG"
       },
-      "execution_count": 17,
+      "execution_count": 18,
       "outputs": []
     }
   ]
