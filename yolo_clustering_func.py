@@ -4,7 +4,7 @@
   "metadata": {
     "colab": {
       "provenance": [],
-      "authorship_tag": "ABX9TyOZope6QTV/HYX/WtoF16ED",
+      "authorship_tag": "ABX9TyOkUkibogFbT9M1hPae5Slk",
       "include_colab_link": true
     },
     "kernelspec": {
@@ -29,6 +29,7 @@
     {
       "cell_type": "code",
       "source": [
+        "%%writefile yolo_clustering_func.py\n",
         "from ultralytics import YOLO\n",
         "import cv2\n",
         "import numpy as np\n",
@@ -36,15 +37,19 @@
         "from sklearn.cluster import KMeans\n",
         "\n",
         "\n",
+        "_backbone = None\n",
+        "\n",
         "def load_backbone():\n",
         "\n",
-        "    model = YOLO(\"yolov8l.pt\")\n",
-        "    yolo_model = model.model\n",
+        "    global _backbone\n",
         "\n",
-        "    backbone = yolo_model.model[:10]\n",
-        "    backbone.eval()\n",
+        "    if _backbone is None:\n",
+        "        model = YOLO(\"yolov8l.pt\")\n",
+        "        yolo_model = model.model\n",
+        "        _backbone = yolo_model.model[:10]\n",
+        "        _backbone.eval()\n",
         "\n",
-        "    return backbone\n",
+        "    return _backbone\n",
         "\n",
         "\n",
         "def preprocess_image(image):\n",
@@ -53,7 +58,7 @@
         "\n",
         "    x = torch.from_numpy(image_resized).permute(2,0,1).unsqueeze(0).float() / 255.0\n",
         "\n",
-        "    return x, image_resized\n",
+        "    return x\n",
         "\n",
         "\n",
         "def extract_features(backbone, x):\n",
@@ -117,7 +122,8 @@
         "    cluster_color_map = colors[seg_resized]\n",
         "\n",
         "    # Blend with original image\n",
-        "    overlay = (0.6 * image + 0.4 * cluster_color_map).astype(\"uint8\")\n",
+        "    alpha = 0.4\n",
+        "    overlay = ((1-alpha) * image + alpha * cluster_color_map).astype(\"uint8\")\n",
         "\n",
         "    return overlay\n",
         "\n",
@@ -127,7 +133,7 @@
         "    if backbone is None:\n",
         "        backbone = load_backbone()\n",
         "\n",
-        "    x, image_resized = preprocess_image(image)\n",
+        "    x = preprocess_image(image)\n",
         "\n",
         "    features = extract_features(backbone, x)\n",
         "\n",
@@ -149,37 +155,171 @@
       ],
       "metadata": {
         "colab": {
-          "base_uri": "https://localhost:8080/",
-          "height": 383
+          "base_uri": "https://localhost:8080/"
         },
         "id": "PkY9ZxkboDSG",
-        "outputId": "ab72adaf-bddd-4d05-af30-171d72b99645"
+        "outputId": "4ff43223-ce22-47f4-a220-921c501f0a4a"
       },
-      "execution_count": 1,
+      "execution_count": null,
       "outputs": [
         {
-          "output_type": "error",
-          "ename": "ModuleNotFoundError",
-          "evalue": "No module named 'ultralytics'",
-          "traceback": [
-            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
-            "\u001b[0;31mModuleNotFoundError\u001b[0m                       Traceback (most recent call last)",
-            "\u001b[0;32m/tmp/ipykernel_1655/2254458322.py\u001b[0m in \u001b[0;36m<cell line: 0>\u001b[0;34m()\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0multralytics\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mYOLO\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      2\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mcv2\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mnumpy\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mnp\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mtorch\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0msklearn\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcluster\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mKMeans\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
-            "\u001b[0;31mModuleNotFoundError\u001b[0m: No module named 'ultralytics'",
-            "",
-            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0;32m\nNOTE: If your import is failing due to a missing package, you can\nmanually install dependencies using either !pip or !apt.\n\nTo view examples of installing some common dependencies, click the\n\"Open Examples\" button below.\n\u001b[0;31m---------------------------------------------------------------------------\u001b[0m\n"
-          ],
-          "errorDetails": {
-            "actions": [
-              {
-                "action": "open_url",
-                "actionText": "Open Examples",
-                "url": "/notebooks/snippets/importing_libraries.ipynb"
-              }
-            ]
-          }
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Overwriting yolo_clustering_func.py\n"
+          ]
         }
       ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!git clone https://github.com/Daanish-Jain/drone-path.git"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "GPLOm8lOiXSb",
+        "outputId": "baacbe34-c909-4cb6-a520-06b549345d70"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "fatal: destination path 'drone-path' already exists and is not an empty directory.\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!ls /content/drone-path"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "R7ZdQrJqjRCQ",
+        "outputId": "ab1feafe-3cdf-49f6-93d2-22e90de11e12"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "drone-path  README.md  yolo_clustering.ipynb\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!mv yolo_clustering_func.py drone-path/"
+      ],
+      "metadata": {
+        "id": "dbQq5tNZiKcr"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!ls /content/drone-path"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "nVwazn4tjq21",
+        "outputId": "8438abec-a0c0-42c6-b1b0-4d831e977209"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "drone-path  README.md  yolo_clustering.ipynb\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "%cd drone-path"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "73cJtpT6iLCe",
+        "outputId": "68d6734c-31df-4cb6-9e8b-31aaa2b452c1"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "/content/drone-path/drone-path\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!git add yolo_clustering_func.py\n",
+        "!git commit -m \"Updated clustering module\"\n",
+        "!git push"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "D3cwxf2LiPCN",
+        "outputId": "b8372478-151e-4069-ea52-c0e68fa2653c"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Author identity unknown\n",
+            "\n",
+            "*** Please tell me who you are.\n",
+            "\n",
+            "Run\n",
+            "\n",
+            "  git config --global user.email \"you@example.com\"\n",
+            "  git config --global user.name \"Your Name\"\n",
+            "\n",
+            "to set your account's default identity.\n",
+            "Omit --global to set the identity only in this repository.\n",
+            "\n",
+            "fatal: unable to auto-detect email address (got 'root@f18011320b7c.(none)')\n",
+            "fatal: could not read Username for 'https://github.com': No such device or address\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "Cq8isnQ3iRRE"
+      },
+      "execution_count": null,
+      "outputs": []
     }
   ]
 }
