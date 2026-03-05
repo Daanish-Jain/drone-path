@@ -4,7 +4,7 @@
   "metadata": {
     "colab": {
       "provenance": [],
-      "authorship_tag": "ABX9TyP40wRipDuUnFXPqBDjY+3L",
+      "authorship_tag": "ABX9TyOZope6QTV/HYX/WtoF16ED",
       "include_colab_link": true
     },
     "kernelspec": {
@@ -36,21 +36,22 @@
         "from sklearn.cluster import KMeans\n",
         "\n",
         "\n",
-        "# Load YOLO model\n",
-        "model = YOLO(\"yolov8l.pt\")\n",
-        "yolo_model = model.model\n",
+        "def load_backbone():\n",
         "\n",
-        "# Extract backbone\n",
-        "backbone = yolo_model.model[:10]   #size of backbone\n",
-        "backbone.eval()\n",
+        "    model = YOLO(\"yolov8l.pt\")\n",
+        "    yolo_model = model.model\n",
+        "\n",
+        "    backbone = yolo_model.model[:10]\n",
+        "    backbone.eval()\n",
+        "\n",
+        "    return backbone\n",
         "\n",
         "\n",
         "def preprocess_image(image):\n",
         "\n",
         "    image_resized = cv2.resize(image, (640,640))\n",
         "\n",
-        "    x = torch.from_numpy(image_resized).permute(2,0,1).unsqueeze(0)\n",
-        "    x = x.float() / 255.0\n",
+        "    x = torch.from_numpy(image_resized).permute(2,0,1).unsqueeze(0).float() / 255.0\n",
         "\n",
         "    return x, image_resized\n",
         "\n",
@@ -60,7 +61,7 @@
         "    with torch.no_grad():\n",
         "        features = backbone(x)\n",
         "\n",
-        "    feat = features.squeeze(0).permute(1,2,0).detach().cpu().numpy()\n",
+        "    feat = features.squeeze(0).permute(1,2,0).contiguous().detach().cpu().numpy()\n",
         "\n",
         "    return feat\n",
         "\n",
@@ -71,7 +72,7 @@
         "\n",
         "    pixels = feature_map.reshape(-1, C)\n",
         "\n",
-        "    kmeans = KMeans(n_clusters=k, random_state=42)\n",
+        "    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)\n",
         "\n",
         "    labels = kmeans.fit_predict(pixels)\n",
         "\n",
@@ -121,7 +122,10 @@
         "    return overlay\n",
         "\n",
         "\n",
-        "def run_yolo_clustering_func(image, backbone, k=4):\n",
+        "def run_yolo_clustering_func(image, backbone=None, k=4):\n",
+        "\n",
+        "    if backbone is None:\n",
+        "        backbone = load_backbone()\n",
         "\n",
         "    x, image_resized = preprocess_image(image)\n",
         "\n",
@@ -144,10 +148,38 @@
         "    return seg_map, road_cluster, road_mask_resized, cluster_img"
       ],
       "metadata": {
-        "id": "PkY9ZxkboDSG"
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 383
+        },
+        "id": "PkY9ZxkboDSG",
+        "outputId": "ab72adaf-bddd-4d05-af30-171d72b99645"
       },
-      "execution_count": 18,
-      "outputs": []
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "error",
+          "ename": "ModuleNotFoundError",
+          "evalue": "No module named 'ultralytics'",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mModuleNotFoundError\u001b[0m                       Traceback (most recent call last)",
+            "\u001b[0;32m/tmp/ipykernel_1655/2254458322.py\u001b[0m in \u001b[0;36m<cell line: 0>\u001b[0;34m()\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0multralytics\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mYOLO\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      2\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mcv2\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mnumpy\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mnp\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mtorch\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0msklearn\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcluster\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mKMeans\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mModuleNotFoundError\u001b[0m: No module named 'ultralytics'",
+            "",
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0;32m\nNOTE: If your import is failing due to a missing package, you can\nmanually install dependencies using either !pip or !apt.\n\nTo view examples of installing some common dependencies, click the\n\"Open Examples\" button below.\n\u001b[0;31m---------------------------------------------------------------------------\u001b[0m\n"
+          ],
+          "errorDetails": {
+            "actions": [
+              {
+                "action": "open_url",
+                "actionText": "Open Examples",
+                "url": "/notebooks/snippets/importing_libraries.ipynb"
+              }
+            ]
+          }
+        }
+      ]
     }
   ]
 }
